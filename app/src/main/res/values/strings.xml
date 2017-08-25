@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AnimeApp</string>
+    <string name="baseUrl">https://myanimelist.net/anime/season</string>
+</resources>
