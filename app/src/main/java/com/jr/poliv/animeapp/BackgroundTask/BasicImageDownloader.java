@@ -142,7 +142,7 @@ public class BasicImageDownloader {
                                    @NonNull final Bitmap.CompressFormat format, boolean shouldOverwrite) {
 
         if (imageFile.isDirectory()) {
-            listener.onBitmapSaveError(new ImageError("the specified path points to a directory, " +
+            listener.onBitmapSaveError(new ImageError("the specified path points to a directoryString, " +
                     "should be a file").setErrorCode(ImageError.ERROR_IS_DIRECTORY));
             return;
         }
@@ -162,7 +162,7 @@ public class BasicImageDownloader {
 
         File parent = imageFile.getParentFile();
         if (!parent.exists() && !parent.mkdirs()) {
-            listener.onBitmapSaveError(new ImageError("could not create parent directory")
+            listener.onBitmapSaveError(new ImageError("could not create parent directoryString")
                     .setErrorCode(ImageError.ERROR_PERMISSION_DENIED));
             return;
         }

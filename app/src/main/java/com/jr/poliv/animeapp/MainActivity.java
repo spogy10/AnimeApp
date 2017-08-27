@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         recyclerView = (RecyclerView) findViewById(R.id.rv);
         LinearLayoutManager ln = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(ln);
-        adapter = new AnimeViewAdapter(list);
+        adapter = new AnimeViewAdapter(this,list);
         recyclerView.setAdapter(adapter);
 
         getLoaderManager().initLoader(0, null, this);

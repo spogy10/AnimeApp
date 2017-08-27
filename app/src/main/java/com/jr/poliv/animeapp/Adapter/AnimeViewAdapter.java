@@ -1,5 +1,7 @@
 package com.jr.poliv.animeapp.Adapter;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +12,11 @@ import android.widget.TextView;
 import com.jr.poliv.animeapp.Data.Anime;
 import com.jr.poliv.animeapp.R;
 import com.jr.poliv.animeapp.global.DataMode;
+import com.jr.poliv.animeapp.global.Global;
+import com.jr.poliv.animeapp.global.Season;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -21,9 +26,11 @@ import java.util.ArrayList;
 public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.ViewHolder> {
 
     private ArrayList<Anime> list;
+    private Context context;
 
-    public AnimeViewAdapter(ArrayList<Anime> list) {
+    public AnimeViewAdapter(Context context, ArrayList<Anime> list) {
         this.list = list;
+        this.context = context;
     }
 
     @Override
@@ -62,7 +69,7 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
             if(DataMode.getMode() == DataMode.ONLINEDATA)
                 Picasso.with(itemView.getContext()).load(anime.getImageUrl()).fit().centerInside().into(iv);
             else if(DataMode.getMode() == DataMode.LOCALDATA)
-                Picasso.with(itemView.getContext()).load(anime.getImagePath()).fit().centerInside().into(iv);
+                Picasso.with(itemView.getContext()).load(new File(anime.getImagePath())).fit().centerInside().into(iv);
             else
                 Picasso.with(itemView.getContext()).load(Integer.parseInt(anime.getImagePath())).fit().centerInside().into(iv);
 

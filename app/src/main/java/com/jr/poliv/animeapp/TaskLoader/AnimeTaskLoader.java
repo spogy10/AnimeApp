@@ -2,12 +2,14 @@ package com.jr.poliv.animeapp.TaskLoader;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.jr.poliv.animeapp.BackgroundTask.CreateLocalData;
 import com.jr.poliv.animeapp.Data.Anime;
 import com.jr.poliv.animeapp.R;
 import com.jr.poliv.animeapp.global.DataMode;
+import com.jr.poliv.animeapp.global.Global;
 import com.jr.poliv.animeapp.global.Season;
 
 
@@ -15,12 +17,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Scanner;
 
 /**
  * Created by poliv on 8/23/2017.
@@ -29,6 +34,8 @@ import java.util.LinkedList;
 public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
     private String myAnimeListUrl = getContext().getString(R.string.baseUrl);
+    int year = 2017;
+    Season season = Season.Summer;
 
     public AnimeTaskLoader(Context context) {
         super(context);
@@ -39,8 +46,12 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
 
         //DataMode.setMode(DataMode.TEST); new ArrayList<Anime>(Arrays.asList(Anime.createTestData()));
+
         try {
-            return new ArrayList<Anime>(parseWebCode(webCode()));
+            if(DataMode.getMode() == DataMode.ONLINEDATA)
+                return new ArrayList<Anime>(parseWebCode(webCode()));
+            else if(DataMode.getMode() == DataMode.LOCALDATA)
+                return new ArrayList<Anime>(parseLocalJSON());
         } catch (IOException e) {
             Log.d("Paul", "IOException Called from AnimeTaskLoader by webCode method "+e.toString());
             e.printStackTrace();
@@ -51,9 +62,12 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     @Override
     public void deliverResult(ArrayList<Anime> data) {
         //cache the data before delivering it
-        new CreateLocalData(getContext(), data, 2017, Season.Summer).execute();
+        if(DataMode.getMode() == DataMode.ONLINEDATA)
+            new CreateLocalData(getContext(), data, year, season).execute();
         super.deliverResult(data);
     }
+
+
 
     @Override
     protected void onStartLoading() {
@@ -141,5 +155,28 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
         webCode = webCode.substring(webCode.indexOf(beginImageUrl));
         return webCode.substring(beginImageUrl.length(), webCode.indexOf(endImageUrl));
+    }
+
+    private LinkedList<Anime> parseLocalJSON(){
+        LinkedList<Anime> list = new LinkedList<>();
+        try {
+            Scanner in = new Scanner(new File(Global.getJSONFilePath(getContext(), year, season)));
+            list = getAnimeFromJSON(in);
+        } catch (FileNotFoundException e) {
+            Log.d("Paul", "error opening JSON file "+e.toString());
+            e.printStackTrace();
+        }
+
+        return  list;
+    }
+
+    private LinkedList<Anime> getAnimeFromJSON(@NonNull Scanner in){
+        LinkedList<Anime> list = new LinkedList<>();
+        in.useDelimiter(Global.DELIMITER);
+
+        while(in.hasNext())
+            list.add(new Anime(Global.unEscapeString(in.next())));
+
+        return list;
     }
 }

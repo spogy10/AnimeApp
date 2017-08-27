@@ -8,7 +8,7 @@ public enum DataMode {
     LOCALDATA, ONLINEDATA, TEST;
 
 
-    private static DataMode mode = DataMode.ONLINEDATA;
+    private static DataMode mode = DataMode.LOCALDATA;
 
     public static DataMode getMode() {
         return mode;
