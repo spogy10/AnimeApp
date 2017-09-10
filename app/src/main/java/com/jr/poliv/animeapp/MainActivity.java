@@ -18,6 +18,7 @@ import com.jr.poliv.animeapp.Data.Anime;
 import com.jr.poliv.animeapp.TaskLoader.AnimeTaskLoader;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
+import com.jr.poliv.animeapp.global.Season;
 
 import java.util.ArrayList;
 

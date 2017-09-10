@@ -8,4 +8,6 @@
     <string name="settings_shared_preferences_file_name">Settings</string>
     <string name="data_mode">dataMode</string>
     <string name="no_network_connection">No Network Connection</string>
+    <string name="default_year">defaultYear</string>
+    <string name="default_season">defaultSeason</string>
 </resources>

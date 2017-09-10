@@ -64,7 +64,7 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
             Anime anime = list.get(position);
             title.setText(anime.getTitle());
             plot.setText(anime.getPlot());
-            String image = ((anime.getImagePath()!= null) || (anime.getImagePath().equals(""))) ? String.valueOf(R.drawable.anime2)/*add default drawable*/ : anime.getImagePath();
+            //String image = ((anime.getImagePath()!= null) || (anime.getImagePath().equals(""))) ? String.valueOf(R.drawable.anime2)/*add default drawable*/ : anime.getImagePath();
             //Picasso.with(itemView.getContext()).load(Integer.parseInt(image)).fit().centerInside().into(iv);
             if(DataMode.getMode() == DataMode.ONLINEDATA)
                 Picasso.with(itemView.getContext()).load(anime.getImageUrl()).fit().centerInside().into(iv);

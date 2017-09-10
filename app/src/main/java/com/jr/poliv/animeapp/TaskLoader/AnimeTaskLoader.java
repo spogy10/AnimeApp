@@ -50,6 +50,21 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
         this.mode = mode;
     }
 
+    public AnimeTaskLoader(Context context, int year, Season season){
+        super(context);
+        this.year = year;
+        this.season = season;
+        myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
+    }
+
+    public AnimeTaskLoader(Context context, int year, Season season, int mode){
+        super(context);
+        this.year = year;
+        this.season = season;
+        myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
+        this.mode = mode;
+    }
+
     @Override
     public ArrayList<Anime> loadInBackground() {
             Log.d("Paul", "Task loader load in background");
