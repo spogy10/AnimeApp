@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">AnimeApp</string>
     <string name="baseUrl">https://myanimelist.net/anime/season</string>
+    <string name="update">Update</string>
+    <string name="online_mode">Online Mode</string>
+    <string name="online_mode_condensed_title">Online</string>
+    <string name="refresh">Refresh</string>
+    <string name="settings_shared_preferences_file_name">Settings</string>
+    <string name="data_mode">dataMode</string>
+    <string name="no_network_connection">No Network Connection</string>
 </resources>

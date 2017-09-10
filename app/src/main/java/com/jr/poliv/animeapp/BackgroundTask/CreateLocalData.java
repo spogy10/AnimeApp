@@ -12,9 +12,7 @@ import com.jr.poliv.animeapp.global.Global;
 import com.jr.poliv.animeapp.global.Season;
 
 import org.apache.commons.io.FileUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,8 +23,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Scanner;
+
 
 /**
  * Created by poliv on 8/25/2017.
@@ -43,21 +40,28 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
     public CreateLocalData(Context context, ArrayList<Anime> animeList, int year, Season season){
         this.context = context;
         this.animeList = animeList;
-        directoryString = context.getFilesDir() + File.separator + year + File.separator + season.toString();
+        directoryString = Global.getSeasonFolder(context, year, season);
     }
 
     private void downloadAllImages(){
         createDirectory();
         for(Anime anime : animeList) {
             anime.setImagePath(downloadFile(anime.getImageUrl()));
+            if(isCancelled())
+                return;
         }
     }
 
     private void createJSON(){
 
         String s = "";
-        for(Anime anime:animeList)
-                s+= Global.escapeString(anime.toJSON()) + Global.DELIMITER;
+        for(Anime anime:animeList){
+            if( (anime.getImagePath().equals("")) || (anime.getImagePath() == null) || (anime.getImagePath().equals(FILE_NOT_FOUND)) ) {
+                Log.d("Paul", "Anime "+anime.getTitle()+" missing image path");
+                return;
+            }
+            s+= Global.escapeString(anime.toJSON()) + Global.DELIMITER;
+        }
 
         try {
             FileWriter fileWriter = new FileWriter(new File(Global.getJSONFilePath(directoryString)));
@@ -91,6 +95,7 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("Paul", "Error downloading image "+e.toString());
+            cancel(true);
         }finally {
             if (is != null) {
                 try {
@@ -121,29 +126,133 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
             downloadAllImages();
+
+            if(isCancelled())
+                return null;
+
             createJSON();
+
+            if(successTest())
+                onSuccess();
+            else
+                onFailure();
+
             return null;
         }
 
-        private void createDirectory(){
+    @Override
+    protected void onCancelled(Void aVoid) {
+        super.onCancelled(aVoid);
+        onFailure();
+    }
+
+    private void createDirectory(){
             File imageDirectory = new File(directoryString);
             if(!imageDirectory.exists()){
-                Log.d("Paul", "Was the directoryString created: "+imageDirectory.mkdirs());
+                boolean temp = imageDirectory.mkdirs();
+                Log.d("Paul", "Was the directoryString created: "+temp);
             }else{
                 Log.d("Paul", "Images directoryString exists ");
 
                 try {
-                    FileUtils.deleteDirectory(imageDirectory);
-                    Log.d("Paul", "Images directoryString deleted ");
+                    File tempFolder = new File(imageDirectory.getAbsolutePath()+"-backup");
+                    FileUtils.deleteDirectory(tempFolder);
+
+                    if(imageDirectory.renameTo(tempFolder)){
+                        Log.d("Paul", "Successful rename");
+                    }else{
+                        Log.d("Paul", "Unsuccessful Rename");
+                        FileUtils.deleteDirectory(imageDirectory);
+                        Log.d("Paul", "Images directoryString deleted ");
+                    }
                 } catch (IOException e) {
                     Log.d("Paul", "Directory not deleted "+e.toString());
                     e.printStackTrace();
                 }
-
-                Log.d("Paul", "Was the directoryString created: "+imageDirectory.mkdirs());
+                imageDirectory = new File(directoryString);
+                boolean temp1 = imageDirectory.mkdirs();
+                Log.d("Paul", "Was the directory created: "+temp1);
             }
             directory = imageDirectory;
         }
+
+        private void onSuccess(){
+            try {
+                FileUtils.deleteDirectory(new File(directoryString+"-backup"));
+                Log.d("Paul", "SUCCESS, temp folder deleted");
+            } catch (IOException e) {
+                Log.d("Paul", "Temporary folder not deleted "+e.toString());
+                e.printStackTrace();
+            }
+        }
+
+        private void onFailure(){
+            File tempFolder = new File(directoryString+"-backup");
+            if(tempFolder.exists()){
+                try {
+                    File decent = new File(directoryString);
+                    FileUtils.deleteDirectory(decent);
+                    if(tempFolder.renameTo(decent))
+                        Log.d("Paul", "Failed to create local data, backup folder successfully utilized");
+                    else
+                        Log.d("Paul", "Failed to create local data, backup folder unsuccessfully utilized ");
+
+                } catch (IOException e) {
+                    Log.d("Paul", "Failed to create local data, backup folder unsuccessfully utilized "+e.toString());
+                    e.printStackTrace();
+                }
+            }else{
+                Log.d("Paul", "Failed to create local data, backup folder doesn't exist");
+            }
+        }
+
+        private boolean successTest(){
+            File decent = new File(directoryString);
+
+            if(decent.exists()){
+                if(new File(Global.getJSONFilePath(directoryString)).exists()){
+                    if(animeList.size() <= 0){
+                        Log.d("Paul", "Error with successTest, Anime array list empty");
+                        return false;
+                    }
+                    Anime anime = animeList.get(animeList.size() - 1);
+                    if( !( (anime.getImagePath().equals("")) || (anime.getImagePath() == null) || (anime.getImagePath().equals(FILE_NOT_FOUND)) ) ) {
+                            return true;
+                    }else{
+                        Log.d("Paul", "Last Anime missing an image file path");
+                    }
+                }else{
+                    Log.d("Paul", "JSON file does not exist");
+                }
+
+            }else{
+                Log.d("Paul", "Folder does not exist");
+                return false;
+            }
+            Log.d("Paul", "Error with successTest");
+            return false;
+        }
+
+    /*private void previousDirectoryMethod(){
+        File imageDirectory = new File(directoryString);
+        if(!imageDirectory.exists()){
+            Log.d("Paul", "Was the directoryString created: "+imageDirectory.mkdirs());
+        }else{
+            Log.d("Paul", "Images directoryString exists ");
+
+            try {
+                FileUtils.deleteDirectory(imageDirectory);
+                Log.d("Paul", "Images directoryString deleted ");
+            } catch (IOException e) {
+                Log.d("Paul", "Directory not deleted "+e.toString());
+                e.printStackTrace();
+            }
+
+            Log.d("Paul", "Was the directoryString created: "+imageDirectory.mkdirs());
+        }
+        directory = imageDirectory;
+    }*/
+
 
 
 }

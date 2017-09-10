@@ -4,6 +4,7 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jr.poliv.animeapp.BackgroundTask.CreateLocalData;
 import com.jr.poliv.animeapp.Data.Anime;
@@ -34,22 +35,32 @@ import java.util.Scanner;
 public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
     private String myAnimeListUrl = getContext().getString(R.string.baseUrl);
-    int year = 2017;
-    Season season = Season.Summer;
+    private int year = 2017;
+    private Season season = Season.Summer;
+    private int mode = 0;
+    public static final int UPDATE_MODE = 1;
+
 
     public AnimeTaskLoader(Context context) {
         super(context);
     }
 
+    public AnimeTaskLoader(Context context, int mode){
+        super(context);
+        this.mode = mode;
+    }
+
     @Override
     public ArrayList<Anime> loadInBackground() {
-
+            Log.d("Paul", "Task loader load in background");
 
         //DataMode.setMode(DataMode.TEST); new ArrayList<Anime>(Arrays.asList(Anime.createTestData()));
 
         try {
-            if(DataMode.getMode() == DataMode.ONLINEDATA)
+            if( (DataMode.getMode() == DataMode.ONLINEDATA) || (mode == UPDATE_MODE) ){
+                Log.d("Paul", "Getting online data");
                 return new ArrayList<Anime>(parseWebCode(webCode()));
+            }
             else if(DataMode.getMode() == DataMode.LOCALDATA)
                 return new ArrayList<Anime>(parseLocalJSON());
         } catch (IOException e) {
@@ -62,8 +73,10 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     @Override
     public void deliverResult(ArrayList<Anime> data) {
         //cache the data before delivering it
-        if(DataMode.getMode() == DataMode.ONLINEDATA)
+        if( (DataMode.getMode() == DataMode.ONLINEDATA) || (mode == UPDATE_MODE)){
+            Log.d("Paul", "Creating local data");
             new CreateLocalData(getContext(), data, year, season).execute();
+        }
         super.deliverResult(data);
     }
 
@@ -72,8 +85,13 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     @Override
     protected void onStartLoading() {
         super.onStartLoading();
-        //check if there is cache data available
-        forceLoad();
+        Log.d("Paul", "About to load in Data Mode: "+ DataMode.getMode().toString());
+
+        if( (!Global.hasAccessToNet(getContext())) && (DataMode.getMode() == DataMode.ONLINEDATA) ) {
+            Toast.makeText(getContext(), getContext().getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
+        }else {
+            forceLoad();
+        }
     }
 
 
@@ -159,12 +177,16 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
     private LinkedList<Anime> parseLocalJSON(){
         LinkedList<Anime> list = new LinkedList<>();
-        try {
-            Scanner in = new Scanner(new File(Global.getJSONFilePath(getContext(), year, season)));
-            list = getAnimeFromJSON(in);
-        } catch (FileNotFoundException e) {
-            Log.d("Paul", "error opening JSON file "+e.toString());
-            e.printStackTrace();
+        if(Global.checkForLocalData(getContext(), year, season)){
+            try {
+                Scanner in = new Scanner(new File(Global.getJSONFilePath(getContext(), year, season)));
+                list = getAnimeFromJSON(in);
+            } catch (FileNotFoundException e) {
+                Log.d("Paul", "error opening JSON file " + e.toString());
+                e.printStackTrace();
+            }
+        }else{
+            Log.d("Paul", "Error getting local data, JSON file does not exist");
         }
 
         return  list;

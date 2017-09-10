@@ -17,4 +17,6 @@ public enum DataMode {
     public static void setMode(DataMode mode) {
         DataMode.mode = mode;
     }
+
+
 }

@@ -1,6 +1,8 @@
 package com.jr.poliv.animeapp.global;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import java.io.File;
 
@@ -11,6 +13,7 @@ import java.io.File;
 public class Global {
     private static final Global ourInstance = new Global();
     public static final String DELIMITER = " ,";
+
 
     public static Global getInstance() {
         return ourInstance;
@@ -45,7 +48,13 @@ public class Global {
         return string.replace("++", "+");
     }
 
-    private static boolean checkForLocalData(Context context, int year, Season season){
+    public static boolean checkForLocalData(Context context, int year, Season season){
         return new File(getJSONFilePath(context, year, season)).exists();
+    }
+
+    public static boolean hasAccessToNet(Context context){
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
     }
 }

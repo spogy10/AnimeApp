@@ -5,5 +5,5 @@ package com.jr.poliv.animeapp.global;
  */
 
 public enum Season {
-    Spring, Summer, Winter, FAll;
+    Spring, Summer, Winter, Fall;
 }
