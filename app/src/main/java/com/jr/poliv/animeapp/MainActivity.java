@@ -18,7 +18,6 @@ import com.jr.poliv.animeapp.Data.Anime;
 import com.jr.poliv.animeapp.TaskLoader.AnimeTaskLoader;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
-import com.jr.poliv.animeapp.global.Season;
 
 import java.util.ArrayList;
 
@@ -29,15 +28,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     ArrayList<Anime> list = new ArrayList<Anime>();
     SharedPreferences preferences;
 
-    //TODO: find a way to update without refreshing
-    //TODO: find a way to show online without losing local data
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); Global.setDefaultYearAndSeason(this);
         preferences = getSharedPreferences(getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE);
-        checkDataMode();
+        appLaunch();
 
         recyclerView = (RecyclerView) findViewById(R.id.rv);
         LinearLayoutManager ln = new LinearLayoutManager(this);
@@ -54,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<ArrayList<Anime>> onCreateLoader(int id, Bundle args) {
-        return new AnimeTaskLoader(this);
+        return new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason());
     }
 
     @Override
@@ -129,6 +127,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
+    private void appLaunch(){
+        checkDataMode();
+        Global.getUserDefinedSeasonFromSharedPreference(this);
+        Global.getUserDefinedYearFromSharedPreference(this);
+        Global.setDefaultYearAndSeason(this);
+    }
+
+
+
     private void checkDataMode(){
         String mode = preferences.getString(getString(R.string.data_mode), DataMode.getMode().toString());
         DataMode.setMode(DataMode.valueOf(mode));
@@ -137,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void update() {
         if(Global.hasAccessToNet(this)) {
             Log.d("Paul", "Updating");
-            new AnimeTaskLoader(this, AnimeTaskLoader.UPDATE_MODE).forceLoad();
+            new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE).forceLoad();
         }else{
             Toast.makeText(this, getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
         }

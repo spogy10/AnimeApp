@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.jr.poliv.animeapp.BackgroundTask.CheckSeason;
 import com.jr.poliv.animeapp.BackgroundTask.CreateLocalData;
 import com.jr.poliv.animeapp.Data.Anime;
 import com.jr.poliv.animeapp.R;
@@ -35,8 +36,8 @@ import java.util.Scanner;
 public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
     private String myAnimeListUrl = getContext().getString(R.string.baseUrl);
-    private int year = 2017;
-    private Season season = Season.Summer;
+    private int year = Global.getDefaultYear(getContext());
+    private Season season = Global.getDefaultSeason(getContext());
     private int mode = 0;
     public static final int UPDATE_MODE = 1;
 
@@ -52,17 +53,21 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
 
     public AnimeTaskLoader(Context context, int year, Season season){
         super(context);
-        this.year = year;
-        this.season = season;
-        myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
+        if(year != 0){
+            this.year = year;
+            this.season = season;
+            myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
+        }
     }
 
     public AnimeTaskLoader(Context context, int year, Season season, int mode){
         super(context);
-        this.year = year;
-        this.season = season;
-        myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
         this.mode = mode;
+        if(year != 0) {
+            this.year = year;
+            this.season = season;
+            myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
+        }
     }
 
     @Override
@@ -114,7 +119,8 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
         InputStream is = null;
         try {
             URL url = new URL(myAnimeListUrl);
-            HttpURLConnection in = (HttpURLConnection) url.openConnection();in.addRequestProperty("User-Agent", "Foo?");
+            HttpURLConnection in = (HttpURLConnection) url.openConnection();
+            in.addRequestProperty("User-Agent", "Foo?");
 
             in.setReadTimeout(0 /* milliseconds */);
             in.setConnectTimeout(0 /* milliseconds */);
@@ -136,12 +142,18 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     private LinkedList<Anime> parseWebCode(String webCode){
         Log.d("Paul", String.valueOf(webCode.length()));
 
+        if( (year == 0) || (myAnimeListUrl.equals(getContext().getString(R.string.baseUrl))) || ( (year == Global.getDefaultYear(getContext())) && ( season == Global.getDefaultSeason(getContext())) ) ){
+            CheckSeason.YearSeason yearSeason = CheckSeason.getYearSeasonFromWebcode(webCode);
+            year = yearSeason.getYear();
+            season = Season.valueOf(yearSeason.getSeason());
+            Global.setUserDefinedYear(getContext(), year);
+            Global.setUserDefinedSeason(getContext(), season);
+            Global.setDefaultYearAndSeason(getContext(), yearSeason);
+        }
 
-        /*try {
-            FileWriter fileWriter = new FileWriter(new File(getContext().getFilesDir(), "Website.txt"));
-
-            fileWriter.write(webCode);
-            fileWriter.close();
+        /*
+        try {
+            Global.writeStringToFile(getContext().getFilesDir().getAbsolutePath(), "Website.txt", webCode);
         } catch (IOException e) {
             Log.d("Paul", "File not written "+e.toString());
             e.printStackTrace();
