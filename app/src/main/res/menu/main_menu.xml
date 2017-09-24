@@ -16,5 +16,9 @@
         android:titleCondensed="@string/online_mode_condensed_title"
         android:checkable="true"/>
 
+    <item android:id="@+id/settings"
+        android:orderInCategory="102"
+        android:title="@string/settings" />
+
 
 </menu>

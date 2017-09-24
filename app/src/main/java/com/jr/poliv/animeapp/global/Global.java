@@ -110,6 +110,10 @@ public class Global {
         return context.getFilesDir() + File.separator + year + File.separator + season.toString();
     }
 
+    public static String getYearFolder(Context context, int year){
+        return context.getFilesDir() + File.separator + year;
+    }
+
     public static String escapeString(String string){
         string = string.replace("+", "++");
         return string.replace(",", "+,");

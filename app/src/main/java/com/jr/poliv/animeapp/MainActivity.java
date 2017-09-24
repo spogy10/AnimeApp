@@ -2,6 +2,7 @@ package com.jr.poliv.animeapp;
 
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     AnimeViewAdapter adapter;
     ArrayList<Anime> list = new ArrayList<Anime>();
     SharedPreferences preferences;
+    public static final int REFRESH = 100000;
 
 
 
@@ -97,6 +99,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 item.setChecked(!item.isChecked());
                 changeDataMode(item.isChecked());
                 return true;
+            case R.id.settings:
+                startActivityForResult(new Intent(this, SettingsActivity.class), 0);
+                return true;
+
             default: return super.onOptionsItemSelected(item);
         }
 
@@ -147,6 +153,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE).forceLoad();
         }else{
             Toast.makeText(this, getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch(resultCode){
+            case REFRESH:
+                refresh();
+                break;
+            default:
         }
     }
 }
