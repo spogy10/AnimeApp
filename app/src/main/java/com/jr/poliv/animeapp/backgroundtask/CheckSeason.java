@@ -1,4 +1,4 @@
-package com.jr.poliv.animeapp.BackgroundTask;
+package com.jr.poliv.animeapp.backgroundtask;
 
 import android.os.AsyncTask;
 import android.util.Log;

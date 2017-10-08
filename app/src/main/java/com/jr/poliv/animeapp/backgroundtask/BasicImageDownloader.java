@@ -1,4 +1,4 @@
-package com.jr.poliv.animeapp.BackgroundTask;
+package com.jr.poliv.animeapp.backgroundtask;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Set;
 

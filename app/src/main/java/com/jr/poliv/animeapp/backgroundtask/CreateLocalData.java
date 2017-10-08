@@ -1,4 +1,4 @@
-package com.jr.poliv.animeapp.BackgroundTask;
+package com.jr.poliv.animeapp.backgroundtask;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,7 +7,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.jr.poliv.animeapp.Data.Anime;
+import com.jr.poliv.animeapp.data.Anime;
 import com.jr.poliv.animeapp.global.Global;
 import com.jr.poliv.animeapp.global.Season;
 
@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 /**
@@ -31,16 +32,21 @@ import java.util.ArrayList;
 
 public class CreateLocalData extends AsyncTask<Void, Void, Void> {
 
-    Context context;
-    String directoryString;
+    private Context context;
+    private String directoryString;
     public static final String FILE_NOT_FOUND = "FILENOTFOUND";
-    ArrayList<Anime> animeList;
-    File directory;
+    private ArrayList<Anime> animeList;
+    private File directory;
+    private int year;
+    private Season season;
+    private LinkedList<Anime> favouritedAnime = new LinkedList<>();
 
     public CreateLocalData(Context context, ArrayList<Anime> animeList, int year, Season season){
         this.context = context;
         this.animeList = animeList;
         directoryString = Global.getSeasonFolder(context, year, season);
+        this.year = year;
+        this.season = season;
     }
 
     private void downloadAllImages(){
@@ -61,6 +67,8 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
                 return;
             }
             s+= Global.escapeString(anime.toJSON()) + Global.DELIMITER;
+            if(anime.isFavourited())
+                favouritedAnime.add(anime);
         }
 
         try {
@@ -180,6 +188,13 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
             try {
                 FileUtils.deleteDirectory(new File(directoryString+"-backup"));
                 Log.d("Paul", "SUCCESS, temp folder deleted");
+                Global.unFavouriteEntireSeason(context, year, season);
+                if(favouritedAnime.size() > 0){
+                    Log.d("Paul", String.valueOf(favouritedAnime.size()) + " were favourited");
+                    int success = Global.favouriteMultipleAnime(context, favouritedAnime, year, season);
+                    Log.d("Paul", String.valueOf(success) + " were added to database");
+                }else
+                    Log.d("Paul", "None were favourtied");
             } catch (IOException e) {
                 Log.d("Paul", "Temporary folder not deleted "+e.toString());
                 e.printStackTrace();

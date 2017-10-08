@@ -1,4 +1,4 @@
-package com.jr.poliv.animeapp.TaskLoader;
+package com.jr.poliv.animeapp.taskloader;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
@@ -6,9 +6,9 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.jr.poliv.animeapp.BackgroundTask.CheckSeason;
-import com.jr.poliv.animeapp.BackgroundTask.CreateLocalData;
-import com.jr.poliv.animeapp.Data.Anime;
+import com.jr.poliv.animeapp.backgroundtask.CheckSeason;
+import com.jr.poliv.animeapp.backgroundtask.CreateLocalData;
+import com.jr.poliv.animeapp.data.Anime;
 import com.jr.poliv.animeapp.R;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -170,26 +171,49 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
                 beginPlot = "class=\"preline\">",
                 endPlot = "</span>";
 
+        HashSet<String> favouritedSet = Global.getAnimeTitlesFromSeason(getContext(), year, season);
+
 //        Log.d("Paul", String.valueOf(webCode.contains(beginTitle))+webCode.indexOf(beginTitle));
 //        Log.d("Paul", String.valueOf(webCode.contains(beginImageUrl))+webCode.indexOf(beginImageUrl));
 //        Log.d("Paul", String.valueOf(webCode.contains(beginPlot))+webCode.indexOf(beginPlot));
 
-        while(webCode.contains(beginTitle)){
-            webCode = webCode.substring(webCode.indexOf(beginTitle));
-            String title = StringEscapeUtils.unescapeHtml4(webCode.substring(beginTitle.length(), webCode.indexOf(endTitle)));
-            Log.d("Paul", "Tittle: "+title);
-            webCode = webCode.substring(webCode.indexOf(endTitle));
+        if(favouritedSet != null) {
+            while(webCode.contains(beginTitle)) {
+                webCode = webCode.substring(webCode.indexOf(beginTitle));
+                String title = StringEscapeUtils.unescapeHtml4(webCode.substring(beginTitle.length(), webCode.indexOf(endTitle)));
+                Log.d("Paul", "Tittle: " + title);
+                webCode = webCode.substring(webCode.indexOf(endTitle));
 
-            webCode = webCode.substring(webCode.indexOf(beginImageUrl));
-            String imageUrl = getImageUrl(webCode, endImageUrl);
-            Log.d("Paul", "Image Url: "+imageUrl);
+                webCode = webCode.substring(webCode.indexOf(beginImageUrl));
+                String imageUrl = getImageUrl(webCode, endImageUrl);
+                Log.d("Paul", "Image Url: " + imageUrl);
 
-            webCode = webCode.substring(webCode.indexOf(beginPlot));
-            String plot = StringEscapeUtils.unescapeHtml4(webCode.substring(beginPlot.length(), webCode.indexOf(endPlot)));
-            Log.d("Paul", "Plot: "+plot);
+                webCode = webCode.substring(webCode.indexOf(beginPlot));
+                String plot = StringEscapeUtils.unescapeHtml4(webCode.substring(beginPlot.length(), webCode.indexOf(endPlot)));
+                Log.d("Paul", "Plot: " + plot);
 
-            animeList.add(new Anime(title, plot, imageUrl));
+                Anime anime = new Anime(title, plot, imageUrl);
+                anime.setFavourited(favouritedSet.contains(anime.getTitle()));
+                animeList.add(anime);
+            }
+        }else {
+            while (webCode.contains(beginTitle)) {
+                webCode = webCode.substring(webCode.indexOf(beginTitle));
+                String title = StringEscapeUtils.unescapeHtml4(webCode.substring(beginTitle.length(), webCode.indexOf(endTitle)));
+                Log.d("Paul", "Tittle: " + title);
+                webCode = webCode.substring(webCode.indexOf(endTitle));
 
+                webCode = webCode.substring(webCode.indexOf(beginImageUrl));
+                String imageUrl = getImageUrl(webCode, endImageUrl);
+                Log.d("Paul", "Image Url: " + imageUrl);
+
+                webCode = webCode.substring(webCode.indexOf(beginPlot));
+                String plot = StringEscapeUtils.unescapeHtml4(webCode.substring(beginPlot.length(), webCode.indexOf(endPlot)));
+                Log.d("Paul", "Plot: " + plot);
+
+                animeList.add(new Anime(title, plot, imageUrl));
+
+            }
         }
 
         return animeList;
@@ -222,10 +246,20 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     private LinkedList<Anime> getAnimeFromJSON(@NonNull Scanner in){
         LinkedList<Anime> list = new LinkedList<>();
         in.useDelimiter(Global.DELIMITER);
+        HashSet<String> favouritedSet = Global.getAnimeTitlesFromSeason(getContext(), year, season);
 
-        while(in.hasNext())
-            list.add(new Anime(Global.unEscapeString(in.next())));
+        if(favouritedSet != null) {
+            while (in.hasNext()) {
+                Anime anime = new Anime(Global.unEscapeString(in.next()));
+                anime.setFavourited(favouritedSet.contains(anime.getTitle()));
+                list.add(anime);
+            }
+        }else{
+            while(in.hasNext())
+                list.add(new Anime(Global.unEscapeString(in.next())));
+        }
 
         return list;
     }
+
 }

@@ -1,4 +1,4 @@
-package com.jr.poliv.animeapp.Data;
+package com.jr.poliv.animeapp.data;
 
 import com.google.gson.Gson;
 import com.jr.poliv.animeapp.R;
@@ -13,6 +13,7 @@ public class Anime {
     private String plot = "";
     private String imageUrl = "";
     private String imagePath = "";
+    private boolean favourited = false;
 
     public Anime() {
     }
@@ -69,6 +70,14 @@ public class Anime {
 
     public String getImagePath() {
         return imagePath;
+    }
+
+    public boolean isFavourited() {
+        return favourited;
+    }
+
+    public void setFavourited(boolean favourited) {
+        this.favourited = favourited;
     }
 
     public void setImagePath(String imagePath) {

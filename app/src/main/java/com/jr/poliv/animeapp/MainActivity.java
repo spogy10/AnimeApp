@@ -14,9 +14,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.jr.poliv.animeapp.Adapter.AnimeViewAdapter;
-import com.jr.poliv.animeapp.Data.Anime;
-import com.jr.poliv.animeapp.TaskLoader.AnimeTaskLoader;
+import com.jr.poliv.animeapp.adapter.AnimeViewAdapter;
+import com.jr.poliv.animeapp.data.Anime;
+import com.jr.poliv.animeapp.taskloader.AnimeTaskLoader;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
 
@@ -46,6 +46,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         recyclerView.setAdapter(adapter);
 
         getLoaderManager().initLoader(0, null, this);
+
+
 
 
 
