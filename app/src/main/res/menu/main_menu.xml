@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/up"
+        android:title="@string/up"
+        android:orderInCategory="1"
+        app:showAsAction="always"
+        app:actionViewClass="android.support.v7.widget.AppCompatButton" />
+
+    <item android:id="@+id/down"
+        android:title="@string/down"
+        android:orderInCategory="2"
+        app:showAsAction="always"
+        app:actionViewClass="android.support.v7.widget.AppCompatButton" />
 
 
     <item android:id="@+id/refresh"

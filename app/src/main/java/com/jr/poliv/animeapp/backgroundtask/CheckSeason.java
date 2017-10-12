@@ -1,7 +1,10 @@
 package com.jr.poliv.animeapp.backgroundtask;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.jr.poliv.animeapp.global.Global;
 
 import org.apache.commons.io.IOUtils;
 
@@ -15,6 +18,11 @@ import java.net.URL;
 
 public class CheckSeason extends AsyncTask<String, Void, CheckSeason.YearSeason> {
 
+    private Context context;
+
+    public CheckSeason(Context context){
+        this.context = context;
+    }
 
     @Override
     protected YearSeason doInBackground(String... params) {
@@ -30,6 +38,15 @@ public class CheckSeason extends AsyncTask<String, Void, CheckSeason.YearSeason>
         return new YearSeason();
     }
 
+    @Override
+    protected void onPostExecute(YearSeason yearSeason) {
+        super.onPostExecute(yearSeason);
+        if (yearSeason.isEmpty())
+            Log.d("Paul", "Error getting year and season, empty data");
+        else {
+            Global.setDefaultYearAndSeason(context, yearSeason);
+        }
+    }
 
     private String getWebCode(String urlString) throws Exception {
         InputStream is = null;
@@ -66,6 +83,8 @@ public class CheckSeason extends AsyncTask<String, Void, CheckSeason.YearSeason>
 
         return new YearSeason(year, season);
     }
+
+
 
 
     public static class YearSeason{

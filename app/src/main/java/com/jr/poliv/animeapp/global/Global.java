@@ -30,6 +30,7 @@ public class Global {
     public static final String DELIMITER = " ,";
     private static int userDefinedYear = 0;
     private static Season userDefinedSeason = Season.Summer;
+    private static int scrollAmount;
 
 
 
@@ -50,18 +51,11 @@ public class Global {
 
     public static void setDefaultYearAndSeason(Context context){ //set the default season and year
         if(hasAccessToNet(context)) {
-            CheckSeason.YearSeason yearSeason = new CheckSeason.YearSeason();
             try {
-                yearSeason = new CheckSeason().execute(context.getString(R.string.baseUrl)).get(30, TimeUnit.SECONDS);
+                new CheckSeason(context).execute(context.getString(R.string.baseUrl));
             } catch (Exception e) {
                 Log.d("Paul", "Error getting year and season" + e.toString());
                 e.printStackTrace();
-            }
-
-            if (yearSeason.isEmpty())
-                Log.d("Paul", "Error getting year and season, empty data");
-            else {
-                setDefaultYearAndSeason(context, yearSeason);
             }
         }
     }
@@ -93,6 +87,20 @@ public class Global {
 
     public static void getUserDefinedSeasonFromSharedPreference(Context context) { //get the user defined season
         userDefinedSeason = Season.valueOf(context.getSharedPreferences(context.getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE).getString(context.getString(R.string.user_defined_season), "Summer"));
+    }
+
+    public static void getScrollAmountFromSharedPreference(Context context){
+        Global.scrollAmount =  context.getSharedPreferences(context.getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE).getInt(context.getString(R.string.scroll_amount), 10);
+    }
+
+    public static int getScrollAmount(){
+        return scrollAmount;
+    }
+
+    public static void setScrollAmount(Context context, int scrollAmount) { //set the user defined year and update sharedprefrence
+        SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE).edit();
+        editor.putInt(context.getString(R.string.scroll_amount), scrollAmount).apply();
+        Global.scrollAmount = scrollAmount;
     }
 
     public static void setUserDefinedSeason(Context context, Season userDefinedSeason) { //set the user defined season and update sharedprefrence

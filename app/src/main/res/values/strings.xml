@@ -18,6 +18,11 @@
     <string name="settings">Settings</string>
     <string name="btDelete_text">DELETE</string>
     <string name="btDefault_text">Set to Default</string>
+    <string name="scroll_amount">scrollAmount</string>
+    <string name="down">Down</string>
+    <string name="up">Up</string>
+    <string name="UP">UP</string>
+    <string name="DOWN">DOWN</string>
 
     <string-array name="seasons">
         <item>Winter</item>

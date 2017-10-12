@@ -7,11 +7,13 @@ import android.content.Loader;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.jr.poliv.animeapp.adapter.AnimeViewAdapter;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); Global.setDefaultYearAndSeason(this);
+        setContentView(R.layout.activity_main);
         preferences = getSharedPreferences(getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE);
         appLaunch();
 
@@ -71,6 +73,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         list.clear();
     }
 
+    private void scrollDown(){
+        int scroll = Global.getScrollAmount();
+        int current = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+        int bottom = list.size() - 1;
+
+        scroll = ((bottom - current) <= scroll)? bottom : (current + scroll);
+
+        recyclerView.smoothScrollToPosition(scroll);
+    }
+
+    private void scrollUp(){
+        int scroll = Global.getScrollAmount();
+        int current = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+        int top = 0;
+
+        scroll = ((current - top) <= scroll)? top : (current - scroll);
+
+        recyclerView.smoothScrollToPosition(scroll);
+    }
+
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -82,6 +104,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem up = menu.findItem(R.id.up);
+        up.setActionView(R.layout.toolbar_button_up);
+        MenuItem down = menu.findItem(R.id.down);
+        down.setActionView(R.layout.toolbar_button_down);
+
+        if(up != null){
+            AppCompatButton button = (AppCompatButton) up.getActionView();
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    scrollUp();
+                }
+            });
+        }
+
+        if(down != null){
+            AppCompatButton button = (AppCompatButton) down.getActionView();
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    scrollDown();
+                }
+            });
+        }
+
         return true;
     }
 
@@ -139,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         checkDataMode();
         Global.getUserDefinedSeasonFromSharedPreference(this);
         Global.getUserDefinedYearFromSharedPreference(this);
+        Global.getScrollAmountFromSharedPreference(this);
         Global.setDefaultYearAndSeason(this);
     }
 
