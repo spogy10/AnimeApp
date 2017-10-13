@@ -1,7 +1,9 @@
 package com.jr.poliv.animeapp;
 
+import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
@@ -10,27 +12,27 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
-import com.jr.poliv.animeapp.adapter.AnimeViewAdapter;
+import com.jr.poliv.animeapp.adapter.FavAnimeViewAdapter;
 import com.jr.poliv.animeapp.data.Anime;
-import com.jr.poliv.animeapp.taskloader.AnimeTaskLoader;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
+import com.jr.poliv.animeapp.taskloader.FavAnimeTaskLoader;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Anime>> {
+public class FavAnimeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Anime>> {
 
     RecyclerView recyclerView;
-    AnimeViewAdapter adapter;
+    FavAnimeViewAdapter adapter;
     ArrayList<Anime> list = new ArrayList<Anime>();
     SharedPreferences preferences;
-    public static final int REFRESH = 100000;
+    public static final int REFRESH = MainActivity.REFRESH;
 
 
 
@@ -38,27 +40,57 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("Fav");
         preferences = getSharedPreferences(getString(R.string.settings_shared_preferences_file_name), Context.MODE_PRIVATE);
-        appLaunch();
 
         recyclerView = (RecyclerView) findViewById(R.id.rv);
         LinearLayoutManager ln = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(ln);
-        adapter = new AnimeViewAdapter(this, list);
+        adapter = new FavAnimeViewAdapter(list);
         recyclerView.setAdapter(adapter);
 
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                final int position = viewHolder.getAdapterPosition();
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(FavAnimeActivity.this); //alert for confirm to delete
+                builder.setMessage("Are you sure to unfavourite?");    //set message
+
+                builder.setPositiveButton(R.string.unfavourite, new DialogInterface.OnClickListener() { //when click on DELETE
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        adapter.notifyItemRemoved(position);    //item removed from recylcerview
+                        Global.unFavouriteAnAnime(FavAnimeActivity.this, list.get(position));
+                        list.remove(position);  //then remove item
+
+                        return;
+                    }
+                }).setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        adapter.notifyItemRemoved(position + 1);    //notifies the RecyclerView Adapter that data in adapter has been removed at a particular position.
+                        adapter.notifyItemRangeChanged(position, adapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
+                        return;
+                    }
+                }).show();
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
         getLoaderManager().initLoader(0, null, this);
-
-
-
-
-
-
     }
 
     @Override
     public Loader<ArrayList<Anime>> onCreateLoader(int id, Bundle args) {
-        return new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason());
+        return new FavAnimeTaskLoader(this);
     }
 
     @Override
@@ -144,17 +176,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 refresh();
                 return true;
 
-            case R.id.update:
-                update();
-                return true;
-
             case R.id.online_mode:
                 item.setChecked(!item.isChecked());
                 changeDataMode(item.isChecked());
-                return true;
-
-            case R.id.favourites:
-                startActivity(new Intent(this, FavAnimeActivity.class));
                 return true;
 
             case R.id.settings:
@@ -191,29 +215,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    private void appLaunch(){
-        checkDataMode();
-        Global.getUserDefinedSeasonFromSharedPreference(this);
-        Global.getUserDefinedYearFromSharedPreference(this);
-        Global.getScrollAmountFromSharedPreference(this);
-        Global.setDefaultYearAndSeason(this);
-    }
-
-
-
-    private void checkDataMode(){
-        String mode = preferences.getString(getString(R.string.data_mode), DataMode.getMode().toString());
-        DataMode.setMode(DataMode.valueOf(mode));
-    }
-
-    private void update() {
-        if(Global.hasAccessToNet(this)) {
-            Log.d("Paul", "Updating");
-            new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE).forceLoad();
-        }else{
-            Toast.makeText(this, getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -29,8 +29,12 @@
         android:titleCondensed="@string/online_mode_condensed_title"
         android:checkable="true"/>
 
-    <item android:id="@+id/settings"
+    <item android:id="@+id/favourites"
         android:orderInCategory="102"
+        android:title="@string/favourites" />
+
+    <item android:id="@+id/settings"
+        android:orderInCategory="103"
         android:title="@string/settings" />
 
 

@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by poliv on 10/7/2017.
@@ -41,40 +42,44 @@ public class FavAnimeProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        Cursor cursor;
-        switch (uriMatcher.match(uri)) {
+        Cursor cursor = null;
+        try {
+            switch (uriMatcher.match(uri)) {
 
-            //to-do
-            case FAVANIME: {
-                cursor = helper.getReadableDatabase().query(FavAnimeContract.FavAnimeEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
+                //to-do
+                case FAVANIME: {
+                    cursor = helper.getReadableDatabase().query(FavAnimeContract.FavAnimeEntry.TABLE_NAME,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            null,
+                            null,
+                            sortOrder
+                    );
+                    break;
+                }
+                //to-do by id
+                case FAVANIME_ID: {
+                    cursor = helper.getReadableDatabase().query(
+                            FavAnimeContract.FavAnimeEntry.TABLE_NAME,
+                            projection,
+                            FavAnimeContract.FavAnimeEntry._ID + " = " + ContentUris.parseId(uri) + "",
+                            null,
+                            null,
+                            null,
+                            sortOrder
+                    );
+                    break;
+                }
+
+                default:
+                    throw new UnsupportedOperationException("Unknown uri" + uri);
+
             }
-            //to-do by id
-            case FAVANIME_ID: {
-                cursor = helper.getReadableDatabase().query(
-                        FavAnimeContract.FavAnimeEntry.TABLE_NAME,
-                        projection,
-                        FavAnimeContract.FavAnimeEntry._ID + " = " + ContentUris.parseId(uri) + "",
-                        null,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-
-            default:
-                throw new UnsupportedOperationException("Unknown uri" + uri);
-
+            cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        }catch (Exception e){
+            Log.d("Paul", "Error with database query "+e.toString());
         }
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -89,22 +94,26 @@ public class FavAnimeProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         final SQLiteDatabase db = helper.getWritableDatabase();
         final int match = uriMatcher.match(uri);
-        Uri returnUri;
+        Uri returnUri = null;
 
-        switch(match) {
-            case FAVANIME: {
+        try {
+            switch (match) {
+                case FAVANIME: {
 
-                long _id = db.insert(FavAnimeContract.FavAnimeEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = FavAnimeContract.FavAnimeEntry.CONTENT_URI;
-                else
-                    throw new SQLException("Failed to insert row into " + uri);
-                break;
+                    long _id = db.insert(FavAnimeContract.FavAnimeEntry.TABLE_NAME, null, values);
+                    if (_id > 0)
+                        returnUri = FavAnimeContract.FavAnimeEntry.CONTENT_URI;
+                    else
+                        throw new SQLException("Failed to insert row into " + uri);
+                    break;
+                }
+                default:
+                    throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri );
+            getContext().getContentResolver().notifyChange(uri, null);
+        }catch (Exception e){
+            Log.d("Paul", "Error inserting into database "+e.toString());
         }
-        getContext().getContentResolver().notifyChange(uri, null);
         return returnUri;
     }
 
@@ -112,17 +121,21 @@ public class FavAnimeProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         final SQLiteDatabase db = helper.getWritableDatabase();
         final int match = uriMatcher.match(uri);
-        int rowsDeleted;
-        switch(match) {
-            case FAVANIME:
-                rowsDeleted = db.delete(FavAnimeContract.FavAnimeEntry.TABLE_NAME, selection, selectionArgs);
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown uri:" + uri);
-        }
-        //Because null deletes all rows and db.delete would return 0 in this case
-        if (selection == null || rowsDeleted != 0){
-            getContext().getContentResolver().notifyChange(uri, null);
+        int rowsDeleted = 0;
+        try {
+            switch (match) {
+                case FAVANIME:
+                    rowsDeleted = db.delete(FavAnimeContract.FavAnimeEntry.TABLE_NAME, selection, selectionArgs);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown uri:" + uri);
+            }
+            //Because null deletes all rows and db.delete would return 0 in this case
+            if (selection == null || rowsDeleted != 0) {
+                getContext().getContentResolver().notifyChange(uri, null);
+            }
+        }catch (Exception e){
+            Log.d("Paul", "Error deleting rows from database "+e.toString());
         }
         return rowsDeleted;
     }
@@ -131,18 +144,23 @@ public class FavAnimeProvider extends ContentProvider {
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         final SQLiteDatabase db = helper.getWritableDatabase();
         final int match = uriMatcher.match(uri);
-        int rowsUpdated;
+        int rowsUpdated = 0;
 
-        switch(match) {
-            case FAVANIME:
-                rowsUpdated = db.update(FavAnimeContract.FavAnimeEntry.TABLE_NAME, values, selection, selectionArgs);
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown uri:" + uri);
+        try {
+            switch (match) {
+                case FAVANIME:
+                    rowsUpdated = db.update(FavAnimeContract.FavAnimeEntry.TABLE_NAME, values, selection, selectionArgs);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown uri:" + uri);
+            }
+            if (rowsUpdated != 0) {
+                getContext().getContentResolver().notifyChange(uri, null);
+            }
+        }catch (Exception e){
+            Log.d("Paul", "Error updating rows in database "+e.toString());
         }
-        if (rowsUpdated != 0){
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
+
         return rowsUpdated;
     }
 

@@ -101,6 +101,7 @@ public class SettingsActivity extends AppCompatActivity { //cut off year at 1917
             }
         });
         setFABState();
+        assert(getSupportActionBar() != null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
@@ -114,6 +115,8 @@ public class SettingsActivity extends AppCompatActivity { //cut off year at 1917
         try {
             FileUtils.deleteDirectory(new File(Global.getSeasonFolder(this, (Integer) year.getSelectedItem(), Season.valueOf(season.getSelectedItem().toString()))));
             Log.d("Paul", "SUCCESS, folder deleted");
+            Global.unFavouriteEntireSeason(this, (Integer) year.getSelectedItem(), Season.valueOf(season.getSelectedItem().toString()));
+            Log.d("Paul", "SUCCESS, Season unfavourited");
         } catch (IOException e) {
             Log.d("Paul", "Folder not deleted "+e.toString());
             e.printStackTrace();

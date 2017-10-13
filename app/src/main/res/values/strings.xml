@@ -23,6 +23,9 @@
     <string name="up">Up</string>
     <string name="UP">UP</string>
     <string name="DOWN">DOWN</string>
+    <string name="favourites">Favourites</string>
+    <string name="unfavourite">Unfavourite</string>
+    <string name="Cancel">Cancel</string>
 
     <string-array name="seasons">
         <item>Winter</item>

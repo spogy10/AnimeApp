@@ -33,6 +33,13 @@
             android:name=".data.FavAnimeProvider"
             android:authorities="com.jr.poliv.animeapp"
             android:exported="false" />
+
+        <activity android:name=".FavAnimeActivity"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.jr.poliv.animeapp.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

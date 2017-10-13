@@ -206,6 +206,16 @@ public class Global {
         context.getContentResolver().delete(CONTENT_URI, whereStatement, args);
     }
 
+    public static void unFavouriteAnAnime(Context context, Anime anime){
+        String title = anime.getTitle(),
+                whereStatement = "("+ COLUMN_TITLE +" = ? AND "+ COLUMN_PLOT +" = ? AND "+ COLUMN_IMAGEURL +" = ? AND "+ COLUMN_IMAGEPATH +" = ?)";
+
+        String[] args = {anime.getTitle(), anime.getPlot(), anime.getImageUrl(), anime.getImagePath()};
+
+
+        context.getContentResolver().delete(CONTENT_URI, whereStatement, args);
+    }
+
     public static void unFavouriteEntireSeason(Context context, int year, Season season){
         String seasonString = season.toString(),
                 whereStatement = "("+ COLUMN_SEASON +" = ? AND "+ COLUMN_YEAR +" = "+ year +")";
@@ -234,8 +244,10 @@ public class Global {
 
         if(cursor == null)
             return null;
-        else if (cursor.getCount() == 0)
+        else if (cursor.getCount() == 0) {
+            cursor.close();
             return null;
+        }
 
         HashSet<String> set = new HashSet<String>(cursor.getCount());
 
