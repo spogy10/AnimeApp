@@ -2,9 +2,11 @@ package com.jr.poliv.animeapp.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -12,6 +14,7 @@ import android.widget.TextView;
 import com.jr.poliv.animeapp.data.Anime;
 import com.jr.poliv.animeapp.R;
 import com.jr.poliv.animeapp.global.DataMode;
+import com.jr.poliv.animeapp.global.Global;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -48,7 +51,8 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         TextView title, plot;
-        ImageView iv;
+        ImageView iv, fav;
+        FrameLayout fl;
         View itemView;
         boolean viewWeightChanged = false;
 
@@ -58,6 +62,8 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
             title = (TextView) itemView.findViewById(R.id.tvTitle);
             plot = (TextView) itemView.findViewById(R.id.tvPlot);
             iv = (ImageView) itemView.findViewById(R.id.ivImage);
+            fav = (ImageView) itemView.findViewById(R.id.ivFav);
+            fl = (FrameLayout) itemView.findViewById(R.id.frameLayout);
 
         }
 
@@ -65,6 +71,8 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
             final Anime anime = list.get(position);
             title.setText(anime.getTitle());
             plot.setText(anime.getPlot());
+            if(anime.isFavourited())
+                fav.setImageResource(R.drawable.ic_favorite_red_24dp);
             //String image = ((anime.getImagePath()!= null) || (anime.getImagePath().equals(""))) ? String.valueOf(R.drawable.anime2)/*add default drawable*/ : anime.getImagePath();
             //Picasso.with(itemView.getContext()).load(Integer.parseInt(image)).fit().centerInside().into(iv);
             if(DataMode.getMode() == DataMode.ONLINEDATA)
@@ -87,6 +95,16 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
                 }
             });
 
+            fav.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(anime.isFavourited())
+                        unFavouriteAnime(anime);
+                    else
+                        favouriteAnime(anime);
+                }
+            });
+
             plot.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -99,9 +117,21 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
 
         }
 
+        private void unFavouriteAnime(Anime anime) {
+            Global.unFavouriteAnAnime(context, anime, Global.getUserDefinedYear(), Global.getUserDefinedSeason());
+            anime.setFavourited(false);
+            fav.setImageResource(R.drawable.ic_unfavorite_red_24dp);
+        }
+
+        private void favouriteAnime(Anime anime) {
+            Global.favouriteAnAnime(context, anime);
+            anime.setFavourited(true);
+            fav.setImageResource(R.drawable.ic_favorite_red_24dp);
+        }
+
         private void expandPlot(){
             setWeight(title, 0.0f);
-            setWeight(iv, 0.0f);
+            setWeight(fl, 0.0f);
 
             viewWeightChanged = true;
         }
@@ -115,7 +145,7 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
 
         private void resetViewWeights(){
             setWeight(title, 1.0f);
-            setWeight(iv, 4.0f);
+            setWeight(fl, 4.0f);
             setWeight(plot, 3.0f);
             viewWeightChanged = false;
         }

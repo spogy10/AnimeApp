@@ -30,7 +30,7 @@ public class FavAnimeViewAdapter extends RecyclerView.Adapter<FavAnimeViewAdapte
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item, parent, false));
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fav_recycler_view_item, parent, false));
     }
 
     @Override
