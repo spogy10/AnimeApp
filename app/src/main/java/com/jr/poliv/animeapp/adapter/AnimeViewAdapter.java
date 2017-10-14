@@ -73,6 +73,8 @@ public class AnimeViewAdapter extends RecyclerView.Adapter<AnimeViewAdapter.View
             plot.setText(anime.getPlot());
             if(anime.isFavourited())
                 fav.setImageResource(R.drawable.ic_favorite_red_24dp);
+            else
+                fav.setImageResource(R.drawable.ic_unfavorite_red_24dp);
             //String image = ((anime.getImagePath()!= null) || (anime.getImagePath().equals(""))) ? String.valueOf(R.drawable.anime2)/*add default drawable*/ : anime.getImagePath();
             //Picasso.with(itemView.getContext()).load(Integer.parseInt(image)).fit().centerInside().into(iv);
             if(DataMode.getMode() == DataMode.ONLINEDATA)

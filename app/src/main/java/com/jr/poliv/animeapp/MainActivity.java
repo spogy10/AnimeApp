@@ -22,7 +22,10 @@ import com.jr.poliv.animeapp.taskloader.AnimeTaskLoader;
 import com.jr.poliv.animeapp.global.DataMode;
 import com.jr.poliv.animeapp.global.Global;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Anime>> {
 
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         list.clear();
         list.addAll(data);
         adapter.notifyDataSetChanged();
+        goBackToPosition();
     }
 
     @Override
@@ -97,6 +101,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    private void goBackToPosition(){
+
+        try {
+            File file = new File(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName));
+            if( (file != null) && (file.exists()) ) {
+                Scanner in = new Scanner(file);
+                int position = Integer.parseInt(in.next());
+                in.close();
+                if( (position >= 0) && (position < list.size()) ){
+                    recyclerView.scrollToPosition(position);
+                }else{
+                    try {
+                        Global.writeStringToFile(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName), String.valueOf(0));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.d("Paul", "Error saving position "+e.toString());
+                    }
+                }
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.d("Paul", "Error loading position "+e.toString());
+        }
+    }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -167,6 +196,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void refresh() {
+        try {
+            Global.writeStringToFile(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName), String.valueOf(0));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("Paul", "Error saving position "+e.toString());
+        }
         getLoaderManager().restartLoader(0, null, this);
         Log.d("Paul", "REFRESHING");
     }
@@ -210,9 +245,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if(Global.hasAccessToNet(this)) {
             Log.d("Paul", "Updating");
             new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE).forceLoad();
+
+            try {
+                Global.writeStringToFile(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName), String.valueOf(0));
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("Paul", "Error saving position "+e.toString());
+            }
         }else{
             Toast.makeText(this, getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
         }
+
     }
 
     @Override
@@ -225,5 +268,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 break;
             default:
         }
+    }
+
+    @Override
+    protected void onPause() {
+        int position = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+        if(position >= 0){
+            try {
+                Global.writeStringToFile(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName), String.valueOf(position));
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("Paul", "Error saving position "+e.toString());
+            }
+        }
+        super.onPause();
     }
 }

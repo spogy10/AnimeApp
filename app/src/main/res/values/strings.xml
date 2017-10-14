@@ -26,6 +26,7 @@
     <string name="favourites">Favourites</string>
     <string name="unfavourite">Unfavourite</string>
     <string name="Cancel">Cancel</string>
+    <string name="indexFileName">indexfile.geb</string>
 
     <string-array name="seasons">
         <item>Winter</item>
