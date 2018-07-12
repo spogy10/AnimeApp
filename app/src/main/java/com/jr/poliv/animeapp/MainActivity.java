@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         MenuItem down = menu.findItem(R.id.down);
         down.setActionView(R.layout.toolbar_button_down);
 
+
         if(up != null){
             AppCompatButton button = (AppCompatButton) up.getActionView();
             button.setOnClickListener(new View.OnClickListener() {

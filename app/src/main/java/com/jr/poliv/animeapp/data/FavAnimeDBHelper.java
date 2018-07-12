@@ -40,7 +40,7 @@ public class FavAnimeDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS" + FavAnimeContract.FavAnimeEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + FavAnimeContract.FavAnimeEntry.TABLE_NAME);
         onCreate(db);
     }
 }
