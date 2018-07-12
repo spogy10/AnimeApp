@@ -238,6 +238,7 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
             }
         }else{
             Log.d("Paul", "Error getting local data, JSON file does not exist");
+            Toast.makeText(getContext(), "No local data found. Please click update", Toast.LENGTH_SHORT).show();
         }
 
         return  list;
