@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.jr.poliv.animeapp.ProgressBarInterface;
 import com.jr.poliv.animeapp.data.Anime;
 import com.jr.poliv.animeapp.global.Global;
 import com.jr.poliv.animeapp.global.Season;
@@ -40,13 +41,15 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
     private int year;
     private Season season;
     private LinkedList<Anime> favouritedAnime = new LinkedList<>();
+    private ProgressBarInterface pbInterface;
 
-    public CreateLocalData(Context context, ArrayList<Anime> animeList, int year, Season season){
+    public CreateLocalData(Context context, ArrayList<Anime> animeList, int year, Season season, ProgressBarInterface pbInterface){
         this.context = context;
         this.animeList = animeList;
         directoryString = Global.getSeasonFolder(context, year, season);
         this.year = year;
         this.season = season;
+        this.pbInterface = pbInterface;
     }
 
     private void downloadAllImages(){
@@ -131,27 +134,41 @@ public class CreateLocalData extends AsyncTask<Void, Void, Void> {
         return image.getAbsolutePath();
     }
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            downloadAllImages();
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        pbInterface.startLocalDataProgress();
+    }
 
-            if(isCancelled())
-                return null;
+    @Override
+    protected Void doInBackground(Void... params) {
+        downloadAllImages();
 
-            createJSON();
-
-            if(successTest())
-                onSuccess();
-            else
-                onFailure();
-
+        if(isCancelled())
             return null;
-        }
+
+        createJSON();
+
+        if(successTest())
+            onSuccess();
+        else
+            onFailure();
+
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        pbInterface.endLocalDataProgress();
+
+    }
 
     @Override
     protected void onCancelled(Void aVoid) {
         super.onCancelled(aVoid);
         onFailure();
+        pbInterface.endLocalDataProgress();
     }
 
     private void createDirectory(){

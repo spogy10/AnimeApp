@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.jr.poliv.animeapp.ProgressBarInterface;
 import com.jr.poliv.animeapp.backgroundtask.CheckSeason;
 import com.jr.poliv.animeapp.backgroundtask.CreateLocalData;
 import com.jr.poliv.animeapp.data.Anime;
@@ -41,6 +42,7 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     private Season season = Global.getDefaultSeason(getContext());
     private int mode = 0;
     public static final int UPDATE_MODE = 1;
+    private ProgressBarInterface pbInterface;
 
 
     public AnimeTaskLoader(Context context) {
@@ -52,16 +54,18 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
         this.mode = mode;
     }
 
-    public AnimeTaskLoader(Context context, int year, Season season){
+    public AnimeTaskLoader(Context context, int year, Season season, ProgressBarInterface pbInterface){
         super(context);
         if(year != 0){
             this.year = year;
             this.season = season;
             myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
         }
+
+        this.pbInterface = pbInterface;
     }
 
-    public AnimeTaskLoader(Context context, int year, Season season, int mode){
+    public AnimeTaskLoader(Context context, int year, Season season, int mode, ProgressBarInterface pbInterface){
         super(context);
         this.mode = mode;
         if(year != 0) {
@@ -69,13 +73,19 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
             this.season = season;
             myAnimeListUrl = Global.createCustomUrl(getContext(), year, season);
         }
+        this.pbInterface = pbInterface;
     }
+
+
 
     @Override
     public ArrayList<Anime> loadInBackground() {
             Log.d("Paul", "Task loader load in background");
 
+
         //DataMode.setMode(DataMode.TEST); new ArrayList<Anime>(Arrays.asList(Anime.createTestData()));
+
+
 
         try {
             if( (DataMode.getMode() == DataMode.ONLINEDATA) || (mode == UPDATE_MODE) ){
@@ -92,18 +102,6 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     }
 
     @Override
-    public void deliverResult(ArrayList<Anime> data) {
-        //cache the data before delivering it
-        if( (DataMode.getMode() == DataMode.ONLINEDATA) || (mode == UPDATE_MODE)){
-            Log.d("Paul", "Creating local data");
-            new CreateLocalData(getContext(), data, year, season).execute();
-        }
-        super.deliverResult(data);
-    }
-
-
-
-    @Override
     protected void onStartLoading() {
         super.onStartLoading();
         Log.d("Paul", "About to load in Data Mode: "+ DataMode.getMode().toString());
@@ -115,6 +113,28 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
         }
     }
 
+    @Override
+    protected void onForceLoad() {
+        pbInterface.startLoadAnimeProgress();
+        super.onForceLoad();
+    }
+
+    @Override
+    public void deliverResult(ArrayList<Anime> data) {
+        //cache the data before delivering it
+        pbInterface.endLoadAnimeProgress();
+        if( (DataMode.getMode() == DataMode.ONLINEDATA) || (mode == UPDATE_MODE)){
+            Log.d("Paul", "Creating local data");
+            new CreateLocalData(getContext(), data, year, season, pbInterface).execute();
+        }
+        super.deliverResult(data);
+    }
+
+    @Override
+    public void onCanceled(ArrayList<Anime> data) {
+        super.onCanceled(data);
+        pbInterface.endLoadAnimeProgress();
+    }
 
     private String webCode() throws IOException {
         InputStream is = null;

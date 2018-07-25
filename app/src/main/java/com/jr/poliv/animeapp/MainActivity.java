@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.jr.poliv.animeapp.adapter.AnimeViewAdapter;
@@ -27,10 +30,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Anime>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Anime>>, ProgressBarInterface {
 
     RecyclerView recyclerView;
     AnimeViewAdapter adapter;
+    ProgressBar progressBar;
     ArrayList<Anime> list = new ArrayList<Anime>();
     SharedPreferences preferences;
     public static final int REFRESH = 100000;
@@ -50,18 +54,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         adapter = new AnimeViewAdapter(this, list);
         recyclerView.setAdapter(adapter);
 
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
+
         getLoaderManager().initLoader(0, null, this);
-
-
-
-
-
 
     }
 
     @Override
     public Loader<ArrayList<Anime>> onCreateLoader(int id, Bundle args) {
-        return new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason());
+        return new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), this);
     }
 
     @Override
@@ -245,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void update() {
         if(Global.hasAccessToNet(this)) {
             Log.d("Paul", "Updating");
-            new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE).forceLoad();
+            new AnimeTaskLoader(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason(), AnimeTaskLoader.UPDATE_MODE, this).forceLoad();
 
             try {
                 Global.writeStringToFile(Global.getSeasonFolder(this, Global.getUserDefinedYear(), Global.getUserDefinedSeason()), getString(R.string.indexFileName), String.valueOf(0));
@@ -283,5 +284,44 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         super.onPause();
+    }
+
+    private void showProgressBar(){
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar(){
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void setProgressBarColour(int colour){
+        progressBar.getIndeterminateDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
+
+    }
+
+    @Override
+    public void startLoadAnimeProgress(){
+        Log.d("Paul", "Start Load Anime Progress");
+        setProgressBarColour(Color.BLUE);
+        showProgressBar();
+    }
+
+    @Override
+    public void endLoadAnimeProgress(){
+        Log.d("Paul", "End Load Anime Progress");
+        hideProgressBar();
+    }
+
+    @Override
+    public void startLocalDataProgress(){
+        Log.d("Paul", "Start Local Data Progress");
+        setProgressBarColour(Color.CYAN);
+        showProgressBar();
+    }
+
+    @Override
+    public void endLocalDataProgress(){
+        Log.d("Paul", "End Local Data Progress");
+        hideProgressBar();
     }
 }

@@ -25,7 +25,7 @@ public class FavAnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
     @Override
     public ArrayList<Anime> loadInBackground() {
 
-        ArrayList<Anime> arrayList = new ArrayList<>(); Log.d("Paul", "Error getting anime from database ");
+        ArrayList<Anime> arrayList = new ArrayList<>();
 
         try {
             return getAnimeFromDatabase();

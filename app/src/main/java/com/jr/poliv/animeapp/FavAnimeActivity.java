@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.jr.poliv.animeapp.adapter.FavAnimeViewAdapter;
 import com.jr.poliv.animeapp.data.Anime;
@@ -32,6 +35,7 @@ public class FavAnimeActivity extends AppCompatActivity implements LoaderManager
     FavAnimeViewAdapter adapter;
     ArrayList<Anime> list = new ArrayList<Anime>();
     SharedPreferences preferences;
+    ProgressBar progressBar;
     public static final int REFRESH = MainActivity.REFRESH;
 
 
@@ -48,6 +52,8 @@ public class FavAnimeActivity extends AppCompatActivity implements LoaderManager
         recyclerView.setLayoutManager(ln);
         adapter = new FavAnimeViewAdapter(list);
         recyclerView.setAdapter(adapter);
+
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -90,11 +96,13 @@ public class FavAnimeActivity extends AppCompatActivity implements LoaderManager
 
     @Override
     public Loader<ArrayList<Anime>> onCreateLoader(int id, Bundle args) {
+        startLoadAnimeProgress();
         return new FavAnimeTaskLoader(this);
     }
 
     @Override
     public void onLoadFinished(Loader<ArrayList<Anime>> loader, ArrayList<Anime> data) {
+        endLoadAnimeProgress();
         list.clear();
         list.addAll(data);
         adapter.notifyDataSetChanged();
@@ -227,4 +235,29 @@ public class FavAnimeActivity extends AppCompatActivity implements LoaderManager
             default:
         }
     }
+
+    private void showProgressBar(){
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar(){
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void setProgressBarColour(int colour){
+        progressBar.getIndeterminateDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
+
+    }
+
+    private void startLoadAnimeProgress(){
+        Log.d("Paul", "Start Load Fav Anime Progress");
+        setProgressBarColour(Color.BLUE);
+        showProgressBar();
+    }
+
+    private void endLoadAnimeProgress(){
+        Log.d("Paul", "End Load Fav Anime Progress");
+        hideProgressBar();
+    }
+
 }
