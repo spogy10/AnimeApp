@@ -324,4 +324,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.d("Paul", "End Local Data Progress");
         hideProgressBar();
     }
+
+    public void makeToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

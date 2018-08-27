@@ -8,4 +8,6 @@ public interface ProgressBarInterface {
     public void startLocalDataProgress();
 
     public void endLocalDataProgress();
+
+    public void makeToast(String message);
 }

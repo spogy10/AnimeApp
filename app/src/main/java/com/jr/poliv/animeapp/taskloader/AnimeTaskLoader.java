@@ -1,5 +1,6 @@
 package com.jr.poliv.animeapp.taskloader;
 
+import android.app.Activity;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -258,7 +259,7 @@ public class AnimeTaskLoader extends AsyncTaskLoader<ArrayList<Anime>> {
             }
         }else{
             Log.d("Paul", "Error getting local data, JSON file does not exist");
-            Toast.makeText(getContext(), "No local data found. Please click update", Toast.LENGTH_SHORT).show();
+            pbInterface.makeToast("No local data found. Please click update");
         }
 
         return  list;
